@@ -27,6 +27,5 @@ static char setaes [NUMAES] [16] = {
 	"aesenc",
 	"aesenclast",
 	"aesimc",
-	"aeskeygenassist",
-	"pclmulqdq"
+	"aeskeygenassist"
 };
