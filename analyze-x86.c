@@ -39,6 +39,7 @@ int main(int argc, char** argv)
     long i486=0, i586=0, i686=0, immx=0, isse=0,
          isse2=0, isse3=0, issse3=0, isse41=0,
          isse42=0, isse4a=0, i3dnow=0, i3dnowext=0,
+	 iaes=0,
          cpuid=0, nop=0, call=0, count=0;
 
 
@@ -114,6 +115,9 @@ int main(int argc, char** argv)
             if (!ok)
             for (i = 0; i < NUM3DNOWEXT; i++)
                 if (!strcmp(s, set3dnowext[i])) { ok = 1; i3dnowext++ ; }
+	    if (!ok)
+		    for (i = 0; i < NUMAES; i++)
+			    if (!strcmp(s, setaes[i])) { ok = 1; iaes++ ; }
                     } /* instruction */
                   } /* strtok2: hex */
                } /* strtok1: address */
@@ -135,6 +139,7 @@ if (isse41) printf(" sse4.1:\t %lu\n", isse41);
 if (isse42) printf(" sse4.2:\t %lu\n", isse42);
 if (i3dnow) printf(" 3dnow!:\t %lu\n", i3dnow);
 if (i3dnowext) printf(" 3dnowext:\t %lu\n", i3dnowext);
+if (iaes) printf(" aes:\t %lu\n", iaes);
 
 return 0;
 }

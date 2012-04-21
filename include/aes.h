@@ -19,17 +19,14 @@
  *      MA 02110-1301, USA.
  */
 
-#include "486.h"
-#include "586.h"
-#include "686.h"
-#include "mmx.h"
-#include "sse.h"
-#include "sse2.h"
-#include "3dnow.h"
-#include "3dnowext.h"
-#include "sse3.h"
-#include "ssse3.h"
-#include "sse41.h"
-#include "sse42.h"
-#include "sse4a.h"
-#include "aes.h"
+#define NUMAES 7
+
+static char setaes [NUMAES] [16] = {
+	"aesdec",
+	"aesdeclast",
+	"aesenc",
+	"aesenclast",
+	"aesimc",
+	"aeskeygenassist",
+	"pclmulqdq"
+};
