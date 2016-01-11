@@ -19,9 +19,7 @@
  *      MA 02110-1301, USA.
  */
 
-#define NUMSSE3 15
-
-static char setsse3 [NUMSSE3] [12] = {
+static const char *setsse3[] = {
 	"addsubpd",
 	"addsubps",
 	"fisttp",
@@ -37,4 +35,5 @@ static char setsse3 [NUMSSE3] [12] = {
 	"movshdup",
 	"movsldup",
 	"mwait",
+	NULL
 };

@@ -19,13 +19,12 @@
  *      MA 02110-1301, USA.
  */
 
-#define NUMAES 7
-
-static char setaes [NUMAES] [16] = {
+static const char *setaes[] = {
 	"aesdec",
 	"aesdeclast",
 	"aesenc",
 	"aesenclast",
 	"aesimc",
-	"aeskeygenassist"
+	"aeskeygenassist",
+	NULL
 };

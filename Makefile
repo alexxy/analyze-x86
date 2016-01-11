@@ -1,8 +1,19 @@
-CC=gcc
-CFLAGS=-O2 -march=native -mtune=native
+override CPPFLAGS += -Iinclude
+CFLAGS += -std=c99
 
-all:
-	$(CC) $(CFLAGS) -Iinclude -o analyze-x86 analyze-x86.c
+PROGS = analyze-x86
+SRCS = $(PROGS:%=%.c)
+DEPS = $(SRCS:%.c=%.d)
+
+DEPEND.c = $(COMPILE.c) -MM -MP
+%.d: %.c
+	$(DEPEND.c) $< $(OUTPUT_OPTION)
+
+all: $(PROGS)
 
 clean:
-	rm analyze-x86
+	rm -f $(PROGS) *.o *.d
+
+.PHONY: all clean
+
+-include $(DEPS)

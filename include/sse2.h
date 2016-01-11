@@ -19,9 +19,7 @@
  *      MA 02110-1301, USA.
  */
 
-#define NUMSSE2 130
-
-static char setsse2 [NUMSSE2] [12] = {
+static const char *setsse2[] = {
 	"addpd",
 	"addsd",
 	"andnpd",
@@ -152,4 +150,5 @@ static char setsse2 [NUMSSE2] [12] = {
 	"punpckhwd",
 	"punpcklbw",
 	"punpckldq",
+	NULL
 };

@@ -19,9 +19,7 @@
  *      MA 02110-1301, USA.
  */
 
-#define NUMSSE41 49
-
-static char setsse41 [NUMSSE41] [12] = {
+static const char *setsse41[] = {
 	"blendpd",
 	"blendps",
 	"blendvpd",
@@ -71,4 +69,5 @@ static char setsse41 [NUMSSE41] [12] = {
 	"roundps",
 	"roundsd",
 	"roundss",
+	NULL
 };

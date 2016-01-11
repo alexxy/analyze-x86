@@ -19,8 +19,7 @@
  *      MA 02110-1301, USA.
  */
 
-#define NUMPCLMUL 1
-
-static char setpclmul [NUMPCLMUL] [12] = {
-	"pclmulqdq"
+static const char *setpclmul[] = {
+	"pclmulqdq",
+	NULL
 };

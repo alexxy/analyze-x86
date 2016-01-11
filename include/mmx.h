@@ -19,9 +19,7 @@
  *      MA 02110-1301, USA.
  */
 
-#define NUMMMX 47
-
-static char setmmx [NUMMMX] [12] = {
+static const char *setmmx[] = {
 	"emms",
 	"movd",
 	"movq",
@@ -69,4 +67,5 @@ static char setmmx [NUMMMX] [12] = {
 	"punpckldq",
 	"punpcklwd",
 	"pxor",
+	NULL
 };
