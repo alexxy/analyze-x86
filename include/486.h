@@ -19,13 +19,12 @@
  *      MA 02110-1301, USA.
  */
 
-#define NUM486 6
-
-static char set486 [NUM486] [12] = {
+static const char *set486[] = {
 	"bswap",
 	"cmpxchg",
 	"invd",
 	"invlpg",
 	"wbinvd",
 	"xadd",
+	NULL
 };

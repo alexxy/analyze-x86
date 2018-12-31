@@ -19,9 +19,7 @@
  *      MA 02110-1301, USA.
  */
 
-#define NUM3DNOWEXT 24
-
-static char set3dnowext [NUM3DNOWEXT] [12] = {
+static const char *set3dnowext[] = {
 	"maskmovq",
 	"movntq",
 	"pavgb",
@@ -46,4 +44,5 @@ static char set3dnowext [NUM3DNOWEXT] [12] = {
 	"pshufw",
 	"pswapd",
 	"sfence",
+	NULL
 };

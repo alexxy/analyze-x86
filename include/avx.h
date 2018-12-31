@@ -1,7 +1,6 @@
 /*      analyze-x86
  *
- *      Copyright 2010 Meya Argenta <fierevere@ya.ru>
- *      Copyright 2012 Alexey Shvetsov <alexxy@gentoo.org>
+ *      Copyright 2016 Ivan Shapovalov <intelfx100@gmail.com>
  *
  *      This program is free software; you can redistribute it and/or modify
  *      it under the terms of the GNU General Public License as published by
@@ -19,12 +18,50 @@
  *      MA 02110-1301, USA.
  */
 
-static const char *setsse4a[] = {
-	"extrq",
-	"insertq",
-	"lzcnt",
-	"movntsd",
-	"movntss",
-	"popcnt",
+static const char *setavx[] = {
+	"vbroadcastss",
+	"vbroadcastsd",
+	"vbroadcastf128",
+	"vinsertf128",
+	"vextractf128",
+	"vmaskmovps",
+	"vmaskmovpd",
+	"vpermilps",
+	"vpermilpd",
+	"vperm2f128",
+	"vzeroall",
+	"vzeroupper",
+	NULL
+};
+
+static const char *setavx2[] = {
+	"vpbroadcastb",
+	"vpbroadcastw",
+	"vpbroadcastd",
+	"vpbroadcastq",
+	"vbroadcasti128",
+	"vinserti128",
+	"vextracti128",
+	"vgatherdpd",
+	"vgatherqpd",
+	"vgatherdps",
+	"vgatherqps",
+	"vpgatherdd",
+	"vpgatherdq",
+	"vpgatherqd",
+	"vpgatherqq",
+	"vpmasqmovd",
+	"vpmasqmovq",
+	"vperms",
+	"vpermd",
+	"vpermpd",
+	"vpermpq",
+	"vperm2i128",
+	"vpblendd",
+	"vpsllvd",
+	"vpsllvq",
+	"vpsrlvd",
+	"vpsrlvq",
+	"vpsravd",
 	NULL
 };

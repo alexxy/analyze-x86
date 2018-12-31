@@ -19,9 +19,7 @@
  *      MA 02110-1301, USA.
  */
 
-#define NUM3DNOW 24
-
-static char set3dnow [NUM3DNOW] [12] = {
+static const char *set3dnow[] = {
 	"femms",
 	"pavgusb",
 	"pf2id",
@@ -46,4 +44,5 @@ static char set3dnow [NUM3DNOW] [12] = {
 	"pmulhrw",
 	"prefetch",
 	"pswapw",
+	NULL
 };

@@ -34,3 +34,4 @@
 #include "sse4a.h"
 #include "aes.h"
 #include "pclmul.h"
+#include "avx.h"

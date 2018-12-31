@@ -19,9 +19,7 @@
  *      MA 02110-1301, USA.
  */
 
-#define NUMSSE42 7
-
-static char setsse42 [NUMSSE42] [12] = {
+static const char *setsse42[] = {
 	"crc32",
 	"pcmpestri",
 	"pcmpestrm",
@@ -29,4 +27,5 @@ static char setsse42 [NUMSSE42] [12] = {
 	"pcmpistri",
 	"pcmpistrm",
 	"popcnt",
+	NULL
 };

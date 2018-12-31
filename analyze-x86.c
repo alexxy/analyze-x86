@@ -2,6 +2,7 @@
  *
  *      Copyright 2010 Meya Argenta <fierevere@ya.ru>
  *      Copyright 2012 Alexey Shvetsov <alexxy@gentoo.org>
+ *      Copyright 2016 Ivan Shapovalov <intelfx@intelfx.name>
  *
  *      This program is free software; you can redistribute it and/or modify
  *      it under the terms of the GNU General Public License as published by
@@ -19,133 +20,138 @@
  *      MA 02110-1301, USA.
  */
 
-
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
-#include <time.h>
-#include <sys/types.h>
+#include <stdint.h>
+#include <assert.h>
+#include <inttypes.h>
+#include <stdbool.h>
+#include <ctype.h>
 
 #include "analyze-x86.h"
 
-int main(int argc, char** argv)
-{   char tmp[8192];
-    char *e, *s, *x;
-    int ret = 0;
-    char itmp[256];
-    FILE *f;
-    int i, ok;
-    long i486=0, i586=0, i686=0, immx=0, isse=0,
-         isse2=0, isse3=0, issse3=0, isse41=0,
-         isse42=0, isse4a=0, i3dnow=0, i3dnowext=0,
-	 iaes=0, ipclmul=0,
-         cpuid=0, nop=0, call=0, count=0;
+static const char *setcpuid[] = { "cpuid", NULL };
+static const char *setnop[] = { "nop", NULL };
+static const char *setcall[] = { "call", NULL };
 
+struct insn_class
+{
+	const char *name;
+	const char **insns;
+	uint64_t count;
+} classes[] = {
+	{ .name = "cpuid", .insns = setcpuid },
+	{ .name = "nop", .insns = setnop },
+	{ .name = "call", .insns = setcall },
+	{ .name = "i486", .insns = set486 },
+	{ .name = "i586", .insns = set586 },
+	{ .name = "i686", .insns = set686 },
+	{ .name = "3dnow!", .insns = set3dnow },
+	{ .name = "3dnowext", .insns = set3dnowext },
+	{ .name = "mmx", .insns = setmmx },
+	{ .name = "sse", .insns = setsse },
+	{ .name = "sse2", .insns = setsse2 },
+	{ .name = "sse3", .insns = setsse3 },
+	{ .name = "ssse3", .insns = setssse3 },
+	{ .name = "sse4.1", .insns = setsse41 },
+	{ .name = "sse4.2", .insns = setsse42 },
+	{ .name = "sse4a", .insns = setsse4a },
+	{ .name = "aes", .insns = setaes },
+	{ .name = "avx", .insns = setavx },
+	{ .name = "avx2", .insns = setavx2 },
+	{ }
+};
 
-    if (argc != 2) { printf("Syntax: %s <binary>\n", argv[0]); return (-1); }
-    snprintf(tmp, 8191, "objdump -d %s", argv[1]);
-    f = popen(tmp, "r");
-    if (!f) { printf("%s\n", "unable to disassembly given binary argument"); return (-1); }
+#define log(fmt, ...) fprintf(stderr, fmt "\n", ## __VA_ARGS__)
 
-    while ( fgets ( tmp , 8191, f ) ) {
-        e = strtok (tmp, "\t");
-        if (e) { e = strtok (NULL, "\t");
-           if (e) { e = strtok (NULL, "\t"); /* 3rd column contains instruction */
-           snprintf(itmp, 255, "%s", e);
-           s = strtok (itmp, " "); /* formatting as spaces */
-             if (s) { x = s; /* clean, in case instruction is without args, i.e. nop */
-                     while(*x) { if (*x == '\n' || *x == '\r')  *x = 0; else x++; }
+#define _cleanup_(x) __attribute__((cleanup(x)))
+static inline void fclosep(FILE **arg) { if (*arg) fclose(*arg); }
+static inline void freep(void *arg) { if (*(void **)arg) free(*(void **)arg); }
 
-             /* comparation */
-            ok = 0;
-              count++;
-              if (!strcmp(s, "cpuid")) { cpuid++; ok = 1; }
-              if (!strcmp(s, "nop")) { nop++; ok = 1; }
-              if (!strcmp(s, "call")) { call++; ok = 1; }
+static inline bool strword(const char *word, const char *line)
+{
+	char c_word, c_line;
 
-            if (!ok)
-            for (i = 0; i < NUM686; i++)
-                if (!strcmp(s, set686[i])) { ok = 1; i686++ ; }
+	for (;;) {
+		c_word = *word++;
+		c_line = *line++;
+		if (!c_word && (!c_line || isspace(c_line))) {
+			return true;
+		}
+		if (c_word != c_line) {
+			return false;
+		}
+	}
+}
 
-            if (!ok)
-            for (i = 0; i < NUMMMX; i++)
-                if (!strcmp(s, setmmx[i])) { ok = 1; immx++ ; }
+int main(int argc, char **argv)
+{
+	int r;
 
-            if (!ok)
-            for (i = 0; i < NUMSSE; i++)
-                if (!strcmp(s, setsse[i])) { ok = 1; isse++ ; }
+	if (argc != 2) {
+		log("This program expects one argument.");
+		log("Syntax: %s <binary>", argv[0]);
+		return 1;
+	}
 
-            if (!ok)
-            for (i = 0; i < NUMSSE2; i++)
-                if (!strcmp(s, setsse2[i])) { ok = 1; isse2++ ; }
+	char *binary = argv[1];
 
-            if (!ok)
-            for (i = 0; i < NUM486; i++)
-               if (!strcmp(s, set486[i])) { ok = 1 ; i486++ ; }
+	_cleanup_(freep) char *objdump_cmdline = NULL;
+	asprintf(&objdump_cmdline, "exec objdump -d '%s' -M intel,intel-mnemonic 2>/dev/null", binary);
+	assert(objdump_cmdline);
 
-            if (!ok)
-            for (i = 0; i < NUM586; i++)
-                if (!strcmp(s, set586[i])) { ok = 1; i586++ ; }
+	_cleanup_(fclosep) FILE *objdump_stdout = popen(objdump_cmdline, "r");
+	if (objdump_stdout == NULL) {
+		log("popen(\"%s\") failed: %m", objdump_cmdline);
+		return 1;
+	}
 
-            if (!ok)
-            for (i = 0; i < NUMSSE3; i++)
-                if (!strcmp(s, setsse3[i])) { ok = 1; isse3++ ; }
+	char line[256], *ptr;
+	uint64_t insn_count = 0;
+	while (fgets(line, sizeof(line), objdump_stdout) != NULL) {
 
-            if (!ok)
-            for (i = 0; i < NUMSSSE3; i++)
-                if (!strcmp(s, setssse3[i])) { ok = 1; issse3++ ; }
+		ptr = strtok(line, "\t"); /* address */
+		if (ptr == NULL) continue;
 
-            if (!ok)
-            for (i = 0; i < NUMSSE41; i++)
-                if (!strcmp(s, setsse41[i])) { ok = 1; isse41++ ; }
+		ptr = strtok(NULL, "\t"); /* opcode */
+		if (ptr == NULL) continue;
 
-            if (!ok)
-            for (i = 0; i < NUMSSE42; i++)
-                if (!strcmp(s, setsse42[i])) { ok = 1; isse42++ ; }
+		ptr = strtok(NULL, "\t"); /* insn and operands */
+		if (ptr == NULL) continue;
 
-            if (!ok)
-            for (i = 0; i < NUMSSE4a; i++)
-                if (!strcmp(s, setsse4a[i])) { ok = 1; isse4a++ ; }
+		/* don't bother cutting off the operands and comments -- we only compare prefixes below */
 
-            if (!ok)
-            for (i = 0; i < NUM3DNOW; i++)
-                if (!strcmp(s, set3dnow[i])) { ok = 1; i3dnow++ ; }
+		++insn_count;
 
-            if (!ok)
-            for (i = 0; i < NUM3DNOWEXT; i++)
-                if (!strcmp(s, set3dnowext[i])) { ok = 1; i3dnowext++ ; }
-	    if (!ok)
-		    for (i = 0; i < NUMAES; i++)
-			    if (!strcmp(s, setaes[i])) { ok = 1; iaes++ ; }
-	    if (!ok)
-		    for (i=0; i<NUMPCLMUL;i++)
-			    if(!strcmp(s, setpclmul[i])) {
-				    ok      = 1;
-				    ipclmul++;
-			    }
-                    } /* instruction */
-                  } /* strtok2: hex */
-               } /* strtok1: address */
+		for (struct insn_class *c = classes; c->insns != NULL; ++c) {
+			for (const char **i = c->insns; *i != NULL; ++i) {
+				if (strword(*i, ptr)) {
+					++c->count;
+					goto done;
+				}
+			}
+		}
+done:;
+	}
 
-                                       } /* end parse */
-        /* delete tmp file */
-        if (f) fclose(f);
-/* print statistics */
-printf("instructions:\n cpuid: %lu\t nop: %lu\t call: %lu\t count: %lu\n",cpuid,nop,call,count);
-if (i486) printf(" i486:\t %lu\n", i486);
-if (i586) printf(" i586:\t %lu\n", i586);
-if (i686) printf(" i686:\t %lu\n", i686);
-if (immx) printf(" mmx:\t %lu\n", immx);
-if (isse) printf(" sse:\t %lu\n", isse);
-if (isse2) printf(" sse2:\t %lu\n", isse2);
-if (isse3) printf(" sse3:\t %lu\n", isse3);
-if (issse3) printf(" ssse3:\t %lu\n", issse3);
-if (isse41) printf(" sse4.1:\t %lu\n", isse41);
-if (isse42) printf(" sse4.2:\t %lu\n", isse42);
-if (i3dnow) printf(" 3dnow!:\t %lu\n", i3dnow);
-if (i3dnowext) printf(" 3dnowext:\t %lu\n", i3dnowext);
-if (iaes) printf(" aes:\t %lu\n", iaes);
+	if (ferror(objdump_stdout)) {
+		log("I/O error reading objdump output: %m");
+		return 1;
+	}
 
-return 0;
+	/* print statistics */
+	if (insn_count == 0)
+		return 0;
+
+	for (struct insn_class *c = classes; c->name != NULL; ++c) {
+		if (c->count > 0) {
+			printf("%s\t%s\t%"PRIu64"\n", binary, c->name, c->count);
+		}
+	}
+
+	printf("%s\ttotal\t%"PRIu64"\n", binary, insn_count);
+
+	return 0;
 }

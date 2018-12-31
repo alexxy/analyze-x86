@@ -19,11 +19,10 @@
  *      MA 02110-1301, USA.
  */
 
-#define NUM586 4
-
-static char set586 [NUM586] [12] = {
+static const char *set586[] = {
 	"cmpxchg8b",
 	"rdmsr",
 	"rdtsc",
 	"wrmsr",
+	NULL
 };

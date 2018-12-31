@@ -19,9 +19,7 @@
  *      MA 02110-1301, USA.
  */
 
-#define NUMSSE 81
-
-static char setsse [NUMSSE] [12] = {
+static const char *setsse[] = {
 	"addps",
 	"addss",
 	"andnps",
@@ -103,4 +101,5 @@ static char setsse [NUMSSE] [12] = {
 	"unpckhps",
 	"unpcklps",
 	"xorps",
+	NULL
 };

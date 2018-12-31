@@ -19,9 +19,7 @@
  *      MA 02110-1301, USA.
  */
 
-#define NUM686 54
-
-static char set686 [NUM686] [12] = {
+static const char *set686[] = {
 	"cmova",
 	"cmovae",
 	"cmovb",
@@ -76,4 +74,5 @@ static char set686 [NUM686] [12] = {
 	"ud2",
 	"ud2a",
 	"ud2b",
+	NULL
 };
